@@ -19,7 +19,7 @@ public class VolunteersAuthorizationPolicy implements AuthorizationPolicy {
     @Override
     public boolean authorize(String username, String principal) {
         User user = manager.getUser(principal);
-        if (user != null && user.getHall().equals(username)) {
+        if (user != null && user.getHall().equalsIgnoreCase(username)) {
             LOG.debug("Authorized {} to be {}", principal, username);
             return true;
         }

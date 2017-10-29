@@ -20,8 +20,9 @@ public class VolunteersAuthorizationMapping implements AuthorizationMapping {
     public String map(String principal) {
         User user = manager.getUser(principal);
         if (user != null) {
-            LOG.debug("Mapping {} to {}", principal, user.getHall());
-            return user.getHall();
+            final String username = user.getHall().toLowerCase();
+            LOG.debug("Mapping {} to {}", principal, username);
+            return username;
         }
         return principal;
     }
