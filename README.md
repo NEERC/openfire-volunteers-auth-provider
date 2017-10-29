@@ -16,14 +16,13 @@ Openfire auth provider and authorization mapping for Volunteers
 
    | Property | Value |
    | -------- | ----- |
-   | `hybridAuthProvider.primaryProvider.className`   | `ru.ifmo.neerc.volunteers.openfire.VolunteersAuthProvider` |
-   | `hybridAuthProvider.secondaryProvider.className` | `org.jivesoftware.openfire.auth.DefaultAuthProvider` |
-   | `provider.auth.className`                        | `org.jivesoftware.openfire.auth.HybridAuthProvider` |
+   | `mappedAuthProvider.mapper.className`            | `ru.ifmo.neerc.volunteers.openfire.VolunteersAuthProviderMapper` |
+   | `provider.auth.className`                        | `org.jivesoftware.openfire.auth.MappedAuthProvider` |
    | `provider.authorization.classList`               | `ru.ifmo.neerc.volunteers.openfire.VolunteersAuthorizationPolicy org.jivesoftware.openfire.auth.DefaultAuthorizationPolicy` |
    | `provider.authorizationMapping.classList`        | `ru.ifmo.neerc.volunteers.openfire.VolunteersAuthorizationMapping org.jivesoftware.openfire.auth.DefaultAuthorizationMapping` |
 
-   This is an example of fail-safe configuration.
-   Should the Volunteers API become inaccessible, Openfire will continue to use default auth provider and authorization mapping.
+   With this configuration Volunteers auth provider is used for Volunteers users only.
+   Openfire users can be authenticated even is Volunteers API is inaccessible.
    
 3. Restart Openfire
 
