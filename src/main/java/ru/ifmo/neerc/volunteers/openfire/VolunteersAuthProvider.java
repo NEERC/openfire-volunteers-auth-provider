@@ -23,10 +23,10 @@ public class VolunteersAuthProvider implements AuthProvider {
     @Override
     public void authenticate(String username, String password) throws UnauthorizedException, ConnectionException, InternalUnauthenticatedException {
         if (!manager.authenticate(username, password)) {
-            LOG.debug("Failed to authenticate user {}", username);
+            LOG.error("Failed to authenticate user {}", username);
             throw new UnauthorizedException();
         }
-        LOG.debug("Authorized user {}", username);
+        LOG.info("Authorized user {}", username);
     }
 
     @Override

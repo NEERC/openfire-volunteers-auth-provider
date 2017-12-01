@@ -20,7 +20,7 @@ public class VolunteersAuthorizationPolicy implements AuthorizationPolicy {
     public boolean authorize(String username, String principal) {
         User user = manager.getUser(principal);
         if (user != null && user.getHall().equalsIgnoreCase(username)) {
-            LOG.debug("Authorized {} to be {}", principal, username);
+            LOG.info("Authorized {} to be {}", principal, username);
             return true;
         }
         return false;
