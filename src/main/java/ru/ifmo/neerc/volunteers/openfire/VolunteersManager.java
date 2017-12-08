@@ -2,6 +2,7 @@ package ru.ifmo.neerc.volunteers.openfire;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,17 +27,23 @@ import org.eclipse.persistence.jaxb.rs.MOXyJsonProvider;
 import org.glassfish.jersey.client.oauth2.OAuth2ClientSupport;
 
 import org.jivesoftware.util.JiveGlobals;
+import org.jivesoftware.util.PropertyEventDispatcher;
+import org.jivesoftware.util.PropertyEventListener;
 
 import org.xmpp.packet.JID;
 
-class VolunteersManager {
+class VolunteersManager implements PropertyEventListener {
     private static final Logger LOG = LoggerFactory.getLogger(VolunteersManager.class);
 
     private static volatile VolunteersManager INSTANCE = null;
 
-    private final WebTarget target;
-    private final int year;
-    private final int day;
+    private String url;
+    private String token;
+    private int year;
+    private int day;
+
+    private final Client client;
+    private WebTarget target;
 
     public static VolunteersManager getInstance() {
         if (INSTANCE == null) {
@@ -50,18 +57,46 @@ class VolunteersManager {
     }
 
     private VolunteersManager() {
-        final String url = JiveGlobals.getProperty("volunteers.url", "http://localhost:8080");
-        final String token = JiveGlobals.getProperty("volunteers.token");
-        year = JiveGlobals.getIntProperty("volunteers.year", 1);
-        day = JiveGlobals.getIntProperty("volunteers.day", 1);
+        url = JiveGlobals.getProperty("volunteers.url", "http://localhost:8080");
+        token = JiveGlobals.getProperty("volunteers.token");
+        year = JiveGlobals.getIntProperty("volunteers.year", 0);
+        day = JiveGlobals.getIntProperty("volunteers.day", 0);
 
-        Client client = ClientBuilder.newClient();
+        client = ClientBuilder.newClient();
         client.register(MOXyJsonProvider.class);
-        client.register(OAuth2ClientSupport.feature(token));
 
-        target = client.target(url + "/api");
+        updateTarget();
+
+        PropertyEventDispatcher.addListener(this);
 
         LOG.info("Initialized with year {} day {}", year, day);
+    }
+
+    private void updateTarget() {
+        target = client.target(url + "/api");
+        target.register(OAuth2ClientSupport.feature(token));
+    }
+
+    private void setUrl(String url) {
+        this.url = url;
+        updateTarget();
+        LOG.info("URL set to {}", this.url);
+    }
+
+    private void setToken(String token) {
+        this.token = token;
+        updateTarget();
+        LOG.info("Token updated");
+    }
+
+    private void setYear(int year) {
+        this.year = year;
+        LOG.info("Year set to {}", this.year);
+    }
+
+    private void setDay(int day) {
+        this.day = day;
+        LOG.info("Day set to {}", this.day);
     }
 
     public boolean authenticate(String username, String password) {
@@ -110,5 +145,51 @@ class VolunteersManager {
             LOG.error("Error communicating with Volunteers", e);
             return null;
         }
+    }
+
+    @Override
+    public void propertySet(String property, Map<String, Object> params) {
+        String value = (String) params.get("value");
+
+        if ("volunteers.url".equals(property)) {
+            setUrl(value);
+        } else if ("volunteers.token".equals(property)) {
+            setToken(value);
+        } else if ("volunteers.year".equals(property)) {
+            try {
+                setYear(Integer.parseInt(value));
+            } catch (NumberFormatException e) {
+                setYear(0);
+            }
+        } else if ("volunteers.day".equals(property)) {
+            try {
+                setDay(Integer.parseInt(value));
+            } catch (NumberFormatException e) {
+                setDay(0);
+            }
+        }
+    }
+
+    @Override
+    public void propertyDeleted(String property, Map<String, Object> params) {
+        if ("volunteers.url".equals(property)) {
+            setUrl("http://localhost:8080");
+        } else if ("volunteers.token".equals(property)) {
+            setToken("");
+        } else if ("volunteers.year".equals(property)) {
+            setYear(0);
+        } else if ("volunteers.day".equals(property)) {
+            setDay(0);
+        }
+    }
+
+    @Override
+    public void xmlPropertySet(String property, Map<String, Object> params) {
+        // ignore
+    }
+
+    @Override
+    public void xmlPropertyDeleted(String property, Map<String, Object> params) {
+        // ignore
     }
 }
